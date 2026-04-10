@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRACTICE EXAM 1</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 10px; }
+        .top-bar { margin-bottom: 10px; }
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: #232f3e; color: white; text-decoration: none; border-radius: 4px; font-weight: 600; font-size: 14px; }
+        .back-btn:hover { background: #131921; }
+        .container { max-width: 100%; }
+        .main-content { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #232f3e; margin-bottom: 15px; font-size: 20px; }
+        .timer { background: #232f3e; color: white; padding: 10px; border-radius: 4px; text-align: center; font-size: 16px; font-weight: bold; }
+        .progress { margin: 0; }
+        .progress-bar { width: 100%; height: 6px; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #ff9900; transition: width 0.3s; }
+        .progress-text { margin-top: 5px; font-size: 12px; color: #666; text-align: center; }
+        .question { margin-bottom: 15px; }
+        .question-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; flex-wrap: wrap; }
+        .question-text { font-size: 16px; font-weight: 600; color: #333; }
+        .flag-btn { padding: 6px 12px; border: 2px solid #ffc107; background: white; border-radius: 4px; cursor: pointer; font-size: 12px; white-space: nowrap; }
+        .flag-btn.flagged { background: #ffc107; color: white; }
+        .option { padding: 10px; margin: 8px 0; border: 2px solid #ddd; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: flex-start; font-size: 14px; }
+        .option:hover { background: #f0f8ff; border-color: #0073bb; }
+        .option.selected { background: #e3f2fd; border-color: #0073bb; }
+        .option.correct { background: #d4edda; border-color: #28a745; }
+        .option.incorrect { background: #f8d7da; border-color: #dc3545; }
+        .option input[type="checkbox"], .option input[type="radio"] { margin-right: 8px; margin-top: 2px; width: 18px; height: 18px; cursor: pointer; flex-shrink: 0; }
+        .buttons { margin: 15px 0; display: flex; gap: 8px; flex-wrap: wrap; }
+        button { padding: 10px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 600; }
+        .btn-primary { background: #ff9900; color: white; }
+        .btn-primary:hover { background: #ec7211; }
+        .btn-secondary { background: #232f3e; color: white; }
+        .btn-secondary:hover { background: #131921; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #c82333; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .results { background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; }
+        .score { font-size: 20px; font-weight: bold; margin: 10px 0; }
+        .pass { color: #28a745; }
+        .fail { color: #dc3545; }
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
+        .stat-card { background: white; padding: 12px; border-radius: 4px; text-align: center; border: 2px solid #e0e0e0; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #232f3e; }
+        .stat-label { font-size: 12px; color: #666; margin-top: 5px; }
+        .hidden { display: none; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); padding: 20px; }
+        .modal-content { background: white; margin: 10% auto; padding: 20px; border-radius: 8px; max-width: 500px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .modal-header { font-size: 20px; font-weight: bold; margin-bottom: 15px; text-align: center; }
+        .modal-correct { color: #28a745; }
+        .modal-incorrect { color: #dc3545; }
+        .modal-body { margin: 15px 0; font-size: 14px; line-height: 1.6; }
+        .modal-footer { text-align: center; margin-top: 15px; }
+        .modal-btn { padding: 10px 24px; background: #ff9900; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 600; }
+        .modal-btn:hover { background: #ec7211; }
+        @media (min-width: 768px) {
+            body { padding: 20px; }
+            .container { max-width: 900px; margin: 0 auto; }
+            .main-content { padding: 30px; }
+            h1 { font-size: 24px; margin-bottom: 20px; }
+            .timer { padding: 15px; font-size: 20px; }
+            .progress-text { font-size: 14px; }
+            .question-text { font-size: 18px; }
+            .option { padding: 12px; font-size: 16px; }
+            button { padding: 12px 24px; font-size: 16px; }
+            .flag-btn { padding: 8px 16px; font-size: 14px; }
+            .modal-content { padding: 30px; }
+            .modal-header { font-size: 24px; margin-bottom: 20px; }
+            .modal-body { font-size: 16px; margin: 20px 0; }
+            .modal-footer { margin-top: 20px; }
+            .modal-btn { padding: 12px 30px; font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <a href="index.html" class="back-btn"><span>←</span><span>Back to Exam List</span></a>
+    </div>
+    <div class="container">
+        <div class="main-content">
+            <h1>PRACTICE EXAM 1</h1>
+            <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+                <div class="timer" id="timer" style="flex: 1; min-width: 150px; margin: 0;">00:00</div>
+                <div class="progress" style="flex: 2; min-width: 200px; margin: 0;">
+                    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+                    <div class="progress-text" id="progress-text">0 of 50 answered</div>
+                </div>
+            </div>
+            <div id="exam-view">
+                <div id="question-container"></div>
+                <div class="buttons">
+                    <button class="btn-secondary" id="prev-btn" onclick="prevQuestion()">← Previous</button>
+                    <button class="btn-primary" id="next-btn" onclick="nextQuestion()">Next →</button>
+                    <button class="btn-danger hidden" id="submit-btn" onclick="confirmSubmit()">Submit Exam</button>
+                    </div>
+            </div>
+            <div id="results-view" class="hidden">
+                <div class="results">
+                    <h2>Exam Results</h2>
+                    <div class="score" id="score-display"></div>
+                    <div id="pass-status"></div>
+                    <div class="stats">
+                        <div class="stat-card"><div class="stat-value" id="correct-count">0</div><div class="stat-label">Correct</div></div>
+                        <div class="stat-card"><div class="stat-value" id="incorrect-count">0</div><div class="stat-label">Incorrect</div></div>
+                        <div class="stat-card"><div class="stat-value" id="unanswered-count">0</div><div class="stat-label">Unanswered</div></div>
+                    </div>
+                    <div id="time-taken"></div>
+                </div>
+                <div class="buttons">
+                    <button class="btn-primary" onclick="reviewAnswers()">Review Answers</button>
+                    <button class="btn-secondary" onclick="restartExam()">Retake Exam</button>
+                    <a href="index.html" class="btn-secondary" style="display: inline-block; text-decoration: none; text-align: center; padding: 12px 24px;">Back to Exam List</a>
+                </div>
+            </div>
+            <div id="review-view" class="hidden">
+                <h2>Answer Review</h2>
+                <div id="all-questions"></div>
+                <div class="buttons">
+                    <button class="btn-secondary" onclick="backToResults()">Back to Results</button>
+                    <button class="btn-primary" onclick="restartExam()">Retake Exam</button>
+                    <a href="index.html" class="btn-secondary" style="display: inline-block; text-decoration: none; text-align: center; padding: 12px 24px;">Back to Exam List</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="answerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" id="modal-header"></div>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-footer">
+                <button class="modal-btn" onclick="closeModal()">Continue</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const questions = [{"num":"1","text":"AWS allows users to manage their resources using a web based user interface. What is the name of this interface?","options":[{"letter":"A","text":"AWS CLI."},{"letter":"B","text":"AWS API."},{"letter":"C","text":"AWS SDK."},{"letter":"D","text":"AWS Management Console."}],"correct":["D"]},{"num":"2","text":"Which of the following is an example of horizontal scaling in the AWS Cloud?","options":[{"letter":"A","text":"Replacing an existing EC2 instance with a larger, more powerful one."},{"letter":"B","text":"Increasing the compute capacity of a single EC2 instance to address the growing demands of an application."},{"letter":"C","text":"Adding more RAM capacity to an EC2 instance."},{"letter":"D","text":"Adding more EC2 instances of the same size to handle an increase in traffic."}],"correct":["D"]},{"num":"3","text":"You have noticed that several critical Amazon EC2 instances have been terminated. Which of the following AWS services would help you determine who took this action?","options":[{"letter":"A","text":"Amazon Inspector."},{"letter":"B","text":"AWS CloudTrail."},{"letter":"C","text":"AWS Trusted Advisor."},{"letter":"D","text":"EC2 Instance Usage Report."}],"correct":["B"]},{"num":"4","text":"Which of the below options are related to the reliability of AWS? (Choose TWO)","options":[{"letter":"A","text":"Applying the principle of least privilege to all AWS resources."},{"letter":"B","text":"Automatically provisioning new resources to meet demand."},{"letter":"C","text":"All AWS services are considered Global Services, and this design helps customers serve their international users."},{"letter":"D","text":"Providing compensation to customers if issues occur."},{"letter":"E","text":"Ability to recover quickly from failures."}],"correct":["B","E"]},{"num":"5","text":"Which statement is true regarding the AWS Shared Responsibility Model?","options":[{"letter":"A","text":"Responsibilities vary depending on the services used."},{"letter":"B","text":"Security of the IaaS services is the responsibility of AWS."},{"letter":"C","text":"Patching the guest OS is always the responsibility of AWS."},{"letter":"D","text":"Security of the managed services is the responsibility of the customer."}],"correct":["A"]},{"num":"6","text":"You have set up consolidated billing for several AWS accounts. One of the accounts has purchased a number of reserved instances for 3 years. Which of the following is true regarding this scenario?","options":[{"letter":"A","text":"The Reserved Instance discounts can only be shared with the master account."},{"letter":"B","text":"All accounts can receive the hourly cost benefit of the Reserved Instances."},{"letter":"C","text":"The purchased instances will have better performance than On-demand instances."},{"letter":"D","text":"There are no cost benefits from using consolidated billing; It is for informational purposes only."}],"correct":["B"]},{"num":"7","text":"A company has developed an eCommerce web application in AWS. What should they do to ensure that the application has the highest level of availability?","options":[{"letter":"A","text":"Deploy the application across multiple Availability Zones and Edge locations."},{"letter":"B","text":"Deploy the application across multiple Availability Zones and subnets."},{"letter":"C","text":"Deploy the application across multiple Regions and Availability Zones."},{"letter":"D","text":"Deploy the application across multiple VPC’s and subnets."}],"correct":["C"]},{"num":"8","text":"What does AWS Snowball provide? (Choose TWO)","options":[{"letter":"A","text":"Built-in computing capabilities that allow customers to process data locally."},{"letter":"B","text":"A catalog of third-party software solutions that customers need to build solutions and run their businesses."},{"letter":"C","text":"A hybrid cloud storage between on-premises environments and the AWS Cloud."},{"letter":"D","text":"An Exabyte-scale data transfer service that allows you to move extremely large amounts of data to AWS."},{"letter":"E","text":"Secure transfer of large amounts of data into and out of the AWS."}],"correct":["A","E"]},{"num":"9","text":"A company has an AWS Enterprise Support plan. They want quick and efficient guidance with their billing and account inquiries. Which of the following should the company use?","options":[{"letter":"A","text":"AWS Health Dashboard."},{"letter":"B","text":"AWS Support Concierge."},{"letter":"C","text":"AWS Customer Service."},{"letter":"D","text":"AWS Operations Support."}],"correct":["B"]},{"num":"10","text":"A Japanese company hosts their applications on Amazon EC2 instances in the Tokyo Region. The company has opened new branches in the United States, and the US users are complaining of high latency. What can the company do to reduce latency for the users in the US while minimizing costs?","options":[{"letter":"A","text":"Applying the Amazon Connect latency-based routing policy."},{"letter":"B","text":"Registering a new US domain name to serve the users in the US."},{"letter":"C","text":"Building a new data center in the US and implementing a hybrid model."},{"letter":"D","text":"Deploying new Amazon EC2 instances in a Region located in the US."}],"correct":["D"]},{"num":"11","text":"An organization has a large number of technical employees who operate their AWS Cloud infrastructure. What does AWS provide to help organize them into teams and then assign the appropriate permissions for each team?","options":[{"letter":"A","text":"IAM roles."},{"letter":"B","text":"IAM users."},{"letter":"C","text":"IAM user groups."},{"letter":"D","text":"AWS Organizations."}],"correct":["C"]},{"num":"12","text":"A company has decided to migrate its Oracle database to AWS. Which AWS service can help achieve this without negatively impacting the functionality of the source database?","options":[{"letter":"A","text":"AWS OpsWorks."},{"letter":"B","text":"AWS Database Migration Service."},{"letter":"C","text":"AWS Server Migration Service."},{"letter":"D","text":"AWS Application Discovery Service."}],"correct":["B"]},{"num":"13","text":"Adjusting compute capacity dynamically to reduce cost is an implementation of which AWS cloud best practice?","options":[{"letter":"A","text":"Build security in every layer."},{"letter":"B","text":"Parallelize tasks."},{"letter":"C","text":"Implement elasticity."},{"letter":"D","text":"Adopt monolithic architecture."}],"correct":["C"]},{"num":"14","text":"What are the benefits of having infrastructure hosted in AWS? (Choose TWO)","options":[{"letter":"A","text":"Increasing speed and agility."},{"letter":"B","text":"There is no need to worry about security."},{"letter":"C","text":"Gaining complete control over the physical infrastructure."},{"letter":"D","text":"Operating applications on behalf of customers."},{"letter":"E","text":"All of the physical security and most of the data/network security are taken care of for you."}],"correct":["A","E"]},{"num":"15","text":"What is the advantage of the AWS-recommended practice of \"decoupling\" applications?","options":[{"letter":"A","text":"Allows treating an application as a single, cohesive unit."},{"letter":"B","text":"Reduces inter-dependencies so that failures do not impact other components of the application."},{"letter":"C","text":"Allows updates of any monolithic application quickly and easily."},{"letter":"D","text":"Allows tracking of any API call made to any AWS service."}],"correct":["B"]},{"num":"16","text":"Which of the following helps a customer view the Amazon EC2 billing activity for the past month?","options":[{"letter":"A","text":"AWS Budgets."},{"letter":"B","text":"AWS Pricing Calculator."},{"letter":"C","text":"AWS Systems Manager."},{"letter":"D","text":"AWS Cost & Usage Reports."}],"correct":["D"]},{"num":"17","text":"What do you gain from setting up consolidated billing for five different AWS accounts under another master account?","options":[{"letter":"A","text":"AWS services’ costs will be reduced to half the original price."},{"letter":"B","text":"The consolidated billing feature is just for organizational purpose."},{"letter":"C","text":"Each AWS account gets volume discounts."},{"letter":"D","text":"Each AWS account gets five times the free-tier services capacity."}],"correct":["C"]},{"num":"18","text":"What should you do in order to keep the data on EBS volumes safe? (Choose TWO)","options":[{"letter":"A","text":"Regularly update firmware on EBS devices."},{"letter":"B","text":"Create EBS snapshots."},{"letter":"C","text":"Ensure that EBS data is encrypted at rest."},{"letter":"D","text":"Store a backup daily in an external drive."},{"letter":"E","text":"Prevent any unauthorized access to AWS data centers."}],"correct":["B","C"]},{"num":"19","text":"One of the most important AWS best-practices to follow is the cloud architecture principle of elasticity. How does this principle improve your architecture’s design?","options":[{"letter":"A","text":"By automatically scaling your on-premises resources based on changes in demand."},{"letter":"B","text":"By automatically scaling your AWS resources using an Elastic Load Balancer."},{"letter":"C","text":"By reducing interdependencies between application components wherever possible."},{"letter":"D","text":"By automatically provisioning the required AWS resources based on changes in demand."}],"correct":["D"]},{"num":"20","text":"A startup company is operating on limited funds and is extremely concerned about cost overruns. Which of the below options can be used to notify the company when their monthly AWS bill exceeds $2000? (Choose TWO)","options":[{"letter":"A","text":"Setup a CloudWatch billing alarm that triggers an SNS notification when the threshold is exceeded."},{"letter":"B","text":"Configure the Amazon Simple Email Service to send billing alerts to their email address on a daily basis."},{"letter":"C","text":"Configure the AWS Budgets Service to alert the company when the threshold is exceeded."},{"letter":"D","text":"Configure AWS CloudTrail to automatically delete all AWS resources when the threshold is exceeded."},{"letter":"E","text":"Configure the Amazon Connect Service to alert the company when the threshold is exceeded."}],"correct":["A","C"]},{"num":"21","text":"What does Amazon CloudFront use to distribute content to global users with low latency?","options":[{"letter":"A","text":"AWS Global Accelerator."},{"letter":"B","text":"AWS Regions."},{"letter":"C","text":"AWS Edge Locations."},{"letter":"D","text":"AWS Availability Zones."}],"correct":["C"]},{"num":"22","text":"What does the \"Principle of Least Privilege\" refer to?","options":[{"letter":"A","text":"You should grant your users only the permissions they need when they need them and nothing more."},{"letter":"B","text":"All IAM users should have at least the necessary permissions to access the core AWS services."},{"letter":"C","text":"All trusted IAM users should have access to any AWS service in the respective AWS account."},{"letter":"D","text":"IAM users should not be granted any permissions; to keep your account safe."}],"correct":["A"]},{"num":"23","text":"Which of the following does NOT belong to the AWS Cloud Computing models?","options":[{"letter":"A","text":"Platform as a Service (PaaS)."},{"letter":"B","text":"Infrastructure as a Service (IaaS)."},{"letter":"C","text":"Software as a Service (SaaS)."},{"letter":"D","text":"Networking as a Service (NaaS)."}],"correct":["D"]},{"num":"24","text":"The identification process of an online financial services company requires that new users must complete an online interview with their security team. The completed recorded interviews are only required in the event of a legal issue or a regulatory compliance breach. What is the most cost-effective service to store the recorded videos?","options":[{"letter":"A","text":"S3 Intelligent-Tiering."},{"letter":"B","text":"AWS Marketplace."},{"letter":"C","text":"Amazon S3 Glacier Deep Archive."},{"letter":"D","text":"Amazon EBS."}],"correct":["C"]},{"num":"25","text":"Which service provides DNS in the AWS cloud?","options":[{"letter":"A","text":"Route 53."},{"letter":"B","text":"AWS Config."},{"letter":"C","text":"Amazon CloudFront."},{"letter":"D","text":"Amazon EMR."}],"correct":["A"]},{"num":"26","text":"Hundreds of thousands of DDoS attacks are recorded every month worldwide. What service does AWS provide to help protect AWS Customers from these attacks? (Choose TWO)","options":[{"letter":"A","text":"AWS Shield."},{"letter":"B","text":"AWS Config."},{"letter":"C","text":"Amazon Cognito."},{"letter":"D","text":"AWS WAF."},{"letter":"E","text":"AWS KMS."}],"correct":["A","D"]},{"num":"27","text":"A company is deploying a new two-tier web application in AWS. Where should the most frequently accessed data be stored so that the application’s response time is optimal?","options":[{"letter":"A","text":"AWS OpsWorks."},{"letter":"B","text":"AWS Storage Gateway."},{"letter":"C","text":"Amazon EBS volume."},{"letter":"D","text":"Amazon ElastiCache."}],"correct":["D"]},{"num":"28","text":"You want to run a questionnaire application for only one day (without interruption), which Amazon EC2 purchase option should you use?","options":[{"letter":"A","text":"Reserved instances."},{"letter":"B","text":"Spot instances."},{"letter":"C","text":"Dedicated instances."},{"letter":"D","text":"On-demand instances."}],"correct":["D"]},{"num":"29","text":"You are working on a project that involves creating thumbnails of millions of images. Consistent uptime is not an issue, and continuous processing is not required. Which EC2 buying option would be the most cost-effective?","options":[{"letter":"A","text":"Reserved Instances."},{"letter":"B","text":"On-demand Instances."},{"letter":"C","text":"Dedicated Instances."},{"letter":"D","text":"Spot Instances."}],"correct":["D"]},{"num":"30","text":"Which of the following can be described as a global content delivery network (CDN) service?","options":[{"letter":"A","text":"AWS VPN."},{"letter":"B","text":"AWS Direct Connect."},{"letter":"C","text":"AWS Regions."},{"letter":"D","text":"Amazon CloudFront."}],"correct":["D"]},{"num":"31","text":"Which of the following services allows customers to manage their agreements with AWS?","options":[{"letter":"A","text":"AWS Artifact."},{"letter":"B","text":"AWS Certificate Manager."},{"letter":"C","text":"AWS Systems Manager."},{"letter":"D","text":"AWS Organizations."}],"correct":["A"]},{"num":"32","text":"Which of the following are examples of AWS-Managed Services, where AWS is responsible for the operational and maintenance burdens of running the service? (Choose TWO)","options":[{"letter":"A","text":"Amazon VPC."},{"letter":"B","text":"Amazon DynamoDB."},{"letter":"C","text":"Amazon Elastic MapReduce."},{"letter":"D","text":"AWS IAM."},{"letter":"E","text":"Amazon Elastic Compute Cloud."}],"correct":["B","C"]},{"num":"33","text":"Your company has a data store application that requires access to a NoSQL database. Which AWS database offering would meet this requirement?","options":[{"letter":"A","text":"Amazon Aurora."},{"letter":"B","text":"Amazon DynamoDB."},{"letter":"C","text":"Amazon Elastic Block Store."},{"letter":"D","text":"Amazon Redshift."}],"correct":["B"]},{"num":"34","text":"As part of the Enterprise support plan, who is the primary point of contact for ongoing support needs?","options":[{"letter":"A","text":"AWS Identity and Access Management (IAM) user."},{"letter":"B","text":"Infrastructure Event Management (IEM) engineer."},{"letter":"C","text":"AWS Consulting Partners."},{"letter":"D","text":"Technical Account Manager (TAM)."}],"correct":["D"]},{"num":"35","text":"How can you view the distribution of AWS spending in one of your AWS accounts?","options":[{"letter":"A","text":"By using Amazon VPC console."},{"letter":"B","text":"By contacting the AWS Support team."},{"letter":"C","text":"By using AWS Cost Explorer."},{"letter":"D","text":"By contacting the AWS Finance team."}],"correct":["C"]},{"num":"36","text":"Which of the following must an IAM user provide to interact with AWS services using the AWS Command Line Interface (AWS CLI)?","options":[{"letter":"A","text":"Access keys."},{"letter":"B","text":"Secret token."},{"letter":"C","text":"UserID."},{"letter":"D","text":"User name and password."}],"correct":["A"]},{"num":"37","text":"You have AWS Basic support, and you have discovered that some AWS resources are being used maliciously, and those resources could potentially compromise your data. What should you do?","options":[{"letter":"A","text":"Contact the AWS Customer Service team."},{"letter":"B","text":"Contact the AWS Abuse team."},{"letter":"C","text":"Contact the AWS Concierge team."},{"letter":"D","text":"Contact the AWS Security team."}],"correct":["B"]},{"num":"38","text":"Select TWO examples of the AWS shared controls.","options":[{"letter":"A","text":"Patch Management."},{"letter":"B","text":"IAM Management."},{"letter":"C","text":"VPC Management."},{"letter":"D","text":"Configuration Management."},{"letter":"E","text":"Data Center operations."}],"correct":["A","D"]},{"num":"39","text":"In order to implement best practices when dealing with a “Single Point of Failure,” you should attempt to build as much automation as possible in both detecting and reacting to failure. Which of the following AWS services would help? (Choose TWO)","options":[{"letter":"A","text":"ELB."},{"letter":"B","text":"Auto Scaling."},{"letter":"C","text":"Amazon Athen."},{"letter":"D","text":"ECR."},{"letter":"E","text":"Amazon EC2."}],"correct":["A","B"]},{"num":"40","text":"A company is planning to host an educational website on AWS. Their video courses will be streamed all around the world. Which of the following AWS services will help achieve high transfer speeds?","options":[{"letter":"A","text":"Amazon SNS."},{"letter":"B","text":"Amazon Kinesis Video Streams."},{"letter":"C","text":"AWS CloudFormation."},{"letter":"D","text":"Amazon CloudFront."}],"correct":["D"]},{"num":"41","text":"A developer is planning to build a two-tier web application that has a MySQL database layer. Which of the following AWS database services would provide automated backups for the application?","options":[{"letter":"A","text":"A MySQL database installed on an EC2 instance."},{"letter":"B","text":"Amazon Aurora."},{"letter":"C","text":"Amazon DynamoDB."},{"letter":"D","text":"Amazon Neptune."}],"correct":["B"]},{"num":"42","text":"What is the AWS service that enables AWS architects to manage infrastructure as code?","options":[{"letter":"A","text":"AWS CloudFormation."},{"letter":"B","text":"AWS Config."},{"letter":"C","text":"Amazon SES."},{"letter":"D","text":"Amazon EMR."}],"correct":["A"]},{"num":"43","text":"Under the shared responsibility model, which of the following is the responsibility of AWS?","options":[{"letter":"A","text":"Client-side encryption."},{"letter":"B","text":"Configuring infrastructure devices."},{"letter":"C","text":"Server-side encryption."},{"letter":"D","text":"Filtering traffic with Security Groups."}],"correct":["B"]},{"num":"44","text":"What does the AWS Health Dashboard provide? (Choose TWO)","options":[{"letter":"A","text":"Detailed troubleshooting guidance to address AWS events impacting your resources."},{"letter":"B","text":"Health checks for Auto Scaling instances."},{"letter":"C","text":"Recommendations for Cost Optimization."},{"letter":"D","text":"A dashboard detailing vulnerabilities in your applications."},{"letter":"E","text":"Personalized view of AWS service health."}],"correct":["A","E"]},{"num":"45","text":"You have deployed your application on multiple Amazon EC2 instances. Your customers complain that sometimes they can’t reach your application. Which AWS service allows you to monitor the performance of your EC2 instances to assist in troubleshooting these issues?","options":[{"letter":"A","text":"AWS Lambda."},{"letter":"B","text":"AWS Config."},{"letter":"C","text":"Amazon CloudWatch."},{"letter":"D","text":"AWS CloudTrail."}],"correct":["C"]},{"num":"46","text":"Your company is developing a critical web application in AWS, and the security of the application is a top priority. Which of the following AWS services will provide infrastructure security optimization recommendations?","options":[{"letter":"A","text":"AWS Shield."},{"letter":"B","text":"AWS Management Console."},{"letter":"C","text":"AWS Secrets Manager."},{"letter":"D","text":"AWS Trusted Advisor."}],"correct":["D"]},{"num":"47","text":"Which of the following is not a benefit of Amazon S3? (Choose TWO)","options":[{"letter":"A","text":"Amazon S3 provides unlimited storage for any type of data."},{"letter":"B","text":"Amazon S3 can run any type of application or backend system."},{"letter":"C","text":"Amazon S3 stores any number of objects, but with object size limits."},{"letter":"D","text":"Amazon S3 can be scaled manually to store and retrieve any amount of data from anywhere."},{"letter":"E","text":"Amazon S3 provides 99.999999999% (11 9’s) of data durability."}],"correct":["B","D"]},{"num":"48","text":"In the AWS Shared responsibility Model, which of the following are the responsibility of the customer? (Choose TWO)","options":[{"letter":"A","text":"Disk disposal."},{"letter":"B","text":"Controlling physical access to compute resources."},{"letter":"C","text":"Patching the Network infrastructure."},{"letter":"D","text":"Setting password complexity rules."},{"letter":"E","text":"Configuring network access rules."}],"correct":["D","E"]},{"num":"49","text":"What does AWS provide to deploy popular technologies such as IBM MQ on AWS with the least amount of effort and time?","options":[{"letter":"A","text":"Amazon Aurora."},{"letter":"B","text":"Amazon CloudWatch."},{"letter":"C","text":"AWS Quick Start reference deployments."},{"letter":"D","text":"AWS OpsWorks."}],"correct":["C"]},{"num":"50","text":"An organization has decided to purchase an Amazon EC2 Reserved Instance (RI) for three years in order to reduce costs. It is possible that the application workloads could change during the reservation period. What is the EC2 Reserved Instance (RI) type that will allow the company to exchange the purchased reserved instance for another reserved instance with higher computing power if they need to?","options":[{"letter":"A","text":"Elastic RI."},{"letter":"B","text":"Premium RI."},{"letter":"C","text":"Standard RI."},{"letter":"D","text":"Convertible RI."}],"correct":["D"]}];
+        let currentQuestion = 0, userAnswers = {}, flaggedQuestions = new Set(), questionRevealed = {}, examSubmitted = false, startTime = Date.now(), timerInterval, pendingNavigation = null;
+
+        function initExam() { startTimer(); showQuestion(0); }
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (!examSubmitted) {
+                    const elapsed = Math.floor((Date.now() - startTime) / 1000), mins = Math.floor(elapsed / 60), secs = elapsed % 60;
+                    document.getElementById('timer').textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+                }
+            }, 1000);
+        }
+        function updateProgress() {
+            const answered = Object.keys(userAnswers).filter(k => userAnswers[k].length > 0).length;
+            const percentage = (answered / questions.length) * 100;
+            document.getElementById('progress-fill').style.width = percentage + '%';
+            document.getElementById('progress-text').textContent = `${answered} of ${questions.length} answered`;
+        }
+        function showQuestion(index) {
+            currentQuestion = index;
+            const q = questions[index], isMultiple = q.correct.length > 1, inputType = isMultiple ? 'checkbox' : 'radio';
+            const userAns = userAnswers[index] || [];
+            const showAnswer = questionRevealed[index] || false;
+            
+            document.getElementById('question-container').innerHTML = `
+                <div class="question">
+                    <div class="question-header">
+                        <div class="question-text">Question ${index + 1} of ${questions.length}${isMultiple ? ' (Choose ' + q.correct.length + ')' : ''}</div>
+                        <button class="flag-btn ${flaggedQuestions.has(index) ? 'flagged' : ''}" onclick="toggleFlag()">${flaggedQuestions.has(index) ? '🚩 Flagged' : '🏳️ Flag'}</button>
+                    </div>
+                    <div class="question-text" style="margin-bottom: 20px;">${q.text}</div>
+                    ${q.options.map(opt => {
+                        const isUserAnswer = userAns.includes(opt.letter);
+                        const isCorrectAnswer = q.correct.includes(opt.letter);
+                        let optClass = 'option';
+                        if (showAnswer) {
+                            if (isCorrectAnswer) optClass += ' correct';
+                            else if (isUserAnswer) optClass += ' incorrect';
+                        }
+                        return `<label class="${optClass}" id="opt-${opt.letter}">
+                            <input type="${inputType}" name="answer" value="${opt.letter}" 
+                                ${isUserAnswer ? 'checked' : ''} 
+                                ${showAnswer ? 'disabled' : ''}
+                                onchange="selectOption('${opt.letter}', this.checked)">
+                            <span><strong>${opt.letter}.</strong> ${opt.text}${showAnswer && isCorrectAnswer ? ' ✓' : ''}</span>
+                        </label>`;
+                    }).join('')}
+                    ${showAnswer ? `<div style="margin-top: 15px; padding: 12px; background: #f8f9fa; border-radius: 4px; border-left: 4px solid #0073bb;">
+                        <strong>Your answer:</strong> ${userAns.length > 0 ? userAns.join(', ') : 'Not answered'}<br>
+                        <strong>Correct answer:</strong> ${q.correct.join(', ')}
+                    </div>` : ''}
+                </div>`;
+            document.getElementById('prev-btn').disabled = index === 0;
+            document.getElementById('next-btn').classList.toggle('hidden', index === questions.length - 1);
+            document.getElementById('submit-btn').classList.toggle('hidden', index !== questions.length - 1);
+            updateProgress();
+        }
+        function selectOption(letter, checked) {
+            const q = questions[currentQuestion], isMultiple = q.correct.length > 1;
+            if (!userAnswers[currentQuestion]) userAnswers[currentQuestion] = [];
+            
+            if (isMultiple) {
+                if (checked) {
+                    if (userAnswers[currentQuestion].length >= q.correct.length && !userAnswers[currentQuestion].includes(letter)) {
+                        event.target.checked = false;
+                        alert(`You can only select ${q.correct.length} options for this question.`);
+                        return;
+                    }
+                    if (!userAnswers[currentQuestion].includes(letter)) userAnswers[currentQuestion].push(letter);
+                } else {
+                    userAnswers[currentQuestion] = userAnswers[currentQuestion].filter(a => a !== letter);
+                }
+            } else {
+                // For single choice, allow deselecting by clicking the same option
+                if (userAnswers[currentQuestion].includes(letter)) {
+                    userAnswers[currentQuestion] = [];
+                    event.target.checked = false;
+                } else {
+                    userAnswers[currentQuestion] = [letter];
+                }
+            }
+            updateProgress();
+        }
+        function toggleFlag() { flaggedQuestions.has(currentQuestion) ? flaggedQuestions.delete(currentQuestion) : flaggedQuestions.add(currentQuestion); showQuestion(currentQuestion); }
+        function showAnswerModal(isCorrect, userAns, correctAns, questionIndex) {
+            const modal = document.getElementById('answerModal');
+            const header = document.getElementById('modal-header');
+            const body = document.getElementById('modal-body');
+            const q = questions[questionIndex];
+            
+            // Get full text for answers
+            const userAnswerText = userAns.map(letter => {
+                const opt = q.options.find(o => o.letter === letter);
+                return opt ? `<strong>${letter}.</strong> ${opt.text}` : letter;
+            }).join('<br>');
+            
+            const correctAnswerText = correctAns.map(letter => {
+                const opt = q.options.find(o => o.letter === letter);
+                return opt ? `<strong>${letter}.</strong> ${opt.text}` : letter;
+            }).join('<br>');
+            
+            if (isCorrect) {
+                header.className = 'modal-header modal-correct';
+                header.innerHTML = '✓ Correct!';
+                body.innerHTML = `<p style="margin-bottom: 10px;">Your answer is correct:</p><div style="padding: 10px; background: #d4edda; border-radius: 4px; border-left: 4px solid #28a745;">${userAnswerText}</div>`;
+            } else {
+                header.className = 'modal-header modal-incorrect';
+                header.innerHTML = '✗ Incorrect';
+                body.innerHTML = `
+                    <p style="margin-bottom: 10px;"><strong>Your answer:</strong></p>
+                    <div style="padding: 10px; background: #f8d7da; border-radius: 4px; border-left: 4px solid #dc3545; margin-bottom: 15px;">${userAns.length > 0 ? userAnswerText : 'Not answered'}</div>
+                    <p style="margin-bottom: 10px;"><strong>Correct answer:</strong></p>
+                    <div style="padding: 10px; background: #d4edda; border-radius: 4px; border-left: 4px solid #28a745;">${correctAnswerText}</div>
+                `;
+            }
+            
+            modal.style.display = 'block';
+        }
+        function closeModal() {
+            document.getElementById('answerModal').style.display = 'none';
+            if (pendingNavigation !== null) {
+                currentQuestion = pendingNavigation;
+                pendingNavigation = null;
+                showQuestion(currentQuestion);
+            }
+        }
+        function goToQuestion(index) { 
+            const userAns = userAnswers[currentQuestion] || [];
+            if (userAns.length > 0 && index !== currentQuestion) {
+                const q = questions[currentQuestion];
+                const correctAns = q.correct;
+                const isCorrect = userAns.length === correctAns.length && userAns.every(a => correctAns.includes(a));
+                questionRevealed[currentQuestion] = true;
+                pendingNavigation = index;
+                showAnswerModal(isCorrect, userAns, correctAns, currentQuestion);
+            } else {
+                showQuestion(index);
+            }
+        }
+        function nextQuestion() { 
+            if (currentQuestion < questions.length - 1) { 
+                const userAns = userAnswers[currentQuestion] || [];
+                if (userAns.length > 0) {
+                    const q = questions[currentQuestion];
+                    const correctAns = q.correct;
+                    const isCorrect = userAns.length === correctAns.length && userAns.every(a => correctAns.includes(a));
+                    questionRevealed[currentQuestion] = true;
+                    pendingNavigation = currentQuestion + 1;
+                    showAnswerModal(isCorrect, userAns, correctAns, currentQuestion);
+                } else {
+                    currentQuestion++; 
+                    showQuestion(currentQuestion);
+                }
+            } 
+        }
+        function prevQuestion() { 
+            if (currentQuestion > 0) { 
+                const userAns = userAnswers[currentQuestion] || [];
+                if (userAns.length > 0) {
+                    const q = questions[currentQuestion];
+                    const correctAns = q.correct;
+                    const isCorrect = userAns.length === correctAns.length && userAns.every(a => correctAns.includes(a));
+                    questionRevealed[currentQuestion] = true;
+                    pendingNavigation = currentQuestion - 1;
+                    showAnswerModal(isCorrect, userAns, correctAns, currentQuestion);
+                } else {
+                    currentQuestion--; 
+                    showQuestion(currentQuestion);
+                }
+            } 
+        }
+        function confirmSubmit() {
+            const answered = Object.keys(userAnswers).filter(k => userAnswers[k].length > 0).length, unanswered = questions.length - answered;
+            if (unanswered > 0 && !confirm(`You have ${unanswered} unanswered question(s). Do you want to submit anyway?`)) return;
+            submitExam();
+        }
+        function submitExam() {
+            examSubmitted = true; clearInterval(timerInterval);
+            let correct = 0, incorrect = 0, unanswered = 0;
+            questions.forEach((q, i) => {
+                const userAns = userAnswers[i] || [], correctAns = q.correct;
+                if (userAns.length === 0) unanswered++;
+                else if (userAns.length === correctAns.length && userAns.every(a => correctAns.includes(a))) correct++;
+                else incorrect++;
+            });
+            const percentage = (correct / questions.length * 100).toFixed(1), passed = percentage >= 70;
+            const elapsed = Math.floor((Date.now() - startTime) / 1000), mins = Math.floor(elapsed / 60), secs = elapsed % 60;
+            document.getElementById('exam-view').classList.add('hidden');
+            document.getElementById('results-view').classList.remove('hidden');
+            document.getElementById('score-display').innerHTML = `Score: ${correct}/${questions.length} (${percentage}%)`;
+            document.getElementById('pass-status').innerHTML = `<div class="score ${passed ? 'pass' : 'fail'}">${passed ? '✓ PASSED' : '✗ FAILED'}</div>`;
+            document.getElementById('correct-count').textContent = correct;
+            document.getElementById('incorrect-count').textContent = incorrect;
+            document.getElementById('unanswered-count').textContent = unanswered;
+            document.getElementById('time-taken').innerHTML = `<strong>Time taken:</strong> ${mins}m ${secs}s`;
+        }
+        function reviewAnswers() {
+            document.getElementById('all-questions').innerHTML = questions.map((q, i) => {
+                const userAns = userAnswers[i] || [], correctAns = q.correct;
+                const isCorrect = userAns.length === correctAns.length && userAns.every(a => correctAns.includes(a)), isUnanswered = userAns.length === 0;
+                return `<div class="question" style="border-left: 4px solid ${isUnanswered ? '#ffc107' : isCorrect ? '#28a745' : '#dc3545'}; padding-left: 15px; margin-bottom: 30px;">
+                    <div class="question-text">Question ${i + 1}: ${q.text}</div>
+                    ${q.options.map(opt => {
+                        const isUserAnswer = userAns.includes(opt.letter), isCorrectAnswer = correctAns.includes(opt.letter);
+                        let className = 'option';
+                        if (isCorrectAnswer) className += ' correct';
+                        else if (isUserAnswer) className += ' incorrect';
+                        return `<div class="${className}"><strong>${opt.letter}.</strong> ${opt.text} ${isCorrectAnswer ? '✓' : ''}</div>`;
+                    }).join('')}
+                    <div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                        <strong>Your answer:</strong> ${userAns.length > 0 ? userAns.join(', ') : 'Not answered'}<br>
+                        <strong>Correct answer:</strong> ${correctAns.join(', ')}
+                    </div></div>`;
+            }).join('');
+            document.getElementById('results-view').classList.add('hidden');
+            document.getElementById('review-view').classList.remove('hidden');
+        }
+        function backToResults() { document.getElementById('review-view').classList.add('hidden'); document.getElementById('results-view').classList.remove('hidden'); }
+        function restartExam() {
+            currentQuestion = 0; userAnswers = {}; flaggedQuestions.clear(); questionRevealed = {}; examSubmitted = false; startTime = Date.now(); clearInterval(timerInterval);
+            document.getElementById('results-view').classList.add('hidden'); document.getElementById('review-view').classList.add('hidden'); document.getElementById('exam-view').classList.remove('hidden');
+            initExam();
+        }
+        initExam();
+    </script>
+</body>
+</html>
